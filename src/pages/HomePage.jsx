@@ -18,7 +18,7 @@ export default function HomePage() {
           <p className="hero-subtitle">La mejor selección de productos gaming en Chile</p>
           <p className="hero-description">Consolas, accesorios, computadores y más para llevar tu experiencia al siguiente nivel</p>
           <div className="d-flex gap-3 justify-content-center flex-wrap mt-4">
-            <Link to="/products" className="btn btn-neon btn-lg">Explorar Catálogo</Link>
+            <Link to="/react-ecommerce/products" className="btn btn-neon btn-lg">Explorar Catálogo</Link>
             <a href="#categorias" className="btn btn-outline-light btn-lg">Ver Categorías</a>
           </div>
         </div>
