@@ -14,15 +14,15 @@ export default function Navbar() {
         <div className="collapse navbar-collapse" id="navbarsExample">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center">
             <li className="nav-item">
-              <NavLink className="nav-link text-nowrap" to="/">Inicio</NavLink>
+              <NavLink className="nav-link text-nowrap" to="/react-ecommerce/">Inicio</NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link text-nowrap" to="/products">Productos</NavLink>
+              <NavLink className="nav-link text-nowrap" to="/react-ecommerce/products">Productos</NavLink>
             </li>
           </ul>
           <ul className="navbar-nav align-items-lg-center">
             <li className="nav-item">
-              <NavLink className="nav-link text-nowrap" to="/cart">Carrito ({count})</NavLink>
+              <NavLink className="nav-link text-nowrap" to="/react-ecommerce/cart">Carrito ({count})</NavLink>
             </li>
           </ul>
         </div>
