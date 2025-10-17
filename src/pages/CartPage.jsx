@@ -12,7 +12,7 @@ export default function CartPage() {
             <div className="display-1 mb-4">🛒</div>
             <h2 className="mb-3">Tu carrito está vacío</h2>
             <p className="text-muted mb-4">Agrega productos para continuar con tu compra.</p>
-<Link href="/react-ecommerce/products" className="btn btn-neon>Explorar productos</Link>
+<Link href="/react-ecommerce/products" className="btn btn-neon">Explorar productos</Link>
           </div>
         </div>
       </div>
