@@ -16,10 +16,10 @@ function App() {
       <main className="flex-fill main-container py-4">
         <Routes>
           <Route path="/react-ecommerce/" element={<HomePage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/products/:id" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/react-ecommerce/products" element={<ProductsPage />} />
+          <Route path="/react-ecommerce/products/:id" element={<ProductDetailPage />} />
+          <Route path="/react-ecommerce/cart" element={<CartPage />} />
+          <Route path="/react-ecommerce/checkout" element={<CheckoutPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
