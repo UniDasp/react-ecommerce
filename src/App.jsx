@@ -15,7 +15,7 @@ function App() {
       <Navbar />
       <main className="flex-fill main-container py-4">
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/react-ecommerce/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
