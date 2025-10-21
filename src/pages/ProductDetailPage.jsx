@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { getProductById } from '../services/products.js'
 import { useCart } from '../context/CartContext.jsx'
 
@@ -53,9 +53,9 @@ export default function ProductDetailPage() {
                 <button className="btn btn-neon btn-lg" onClick={() => addItem(product, 1)}>
                   🛒 Agregar al carrito
                 </button>
-                <a href="/products" className="btn btn-outline-secondary">
+                <Link to="/react-ecommerce/products" className="btn btn-outline-secondary">
                   ← Volver al catálogo
-                </a>
+                </Link>
               </div>
               <div className="mt-4 pt-4 border-top">
                 <p className="text-muted mb-2"><strong>✓</strong> Envío gratis a todo Chile</p>

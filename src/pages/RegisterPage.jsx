@@ -7,9 +7,8 @@ export default function RegisterPage() {
         <div className="col-12 col-md-10 col-lg-8 col-xl-6">
           <div className="card gamer-card no-hover">
             <div className="card-body p-4 p-md-5">
-              <h2 className="section-title text-center mb-4">
-                🎮 Crear Cuenta
-              </h2>
+              <h2 className="section-title text-center mb-2">🎮 Crear Cuenta</h2>
+              <p className="auth-subtitle">Regístrate para comenzar a comprar en LEVEL-UP GAMER</p>
 
               <form>
                 <div className="row g-3">
@@ -38,18 +37,9 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="col-12">
-                    <label htmlFor="email" className="form-label">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      id="email"
-                      placeholder="tu@email.com"
-                    />
-                    <small className="text-muted">
-                      🎓 Usa tu correo @duocuc.cl para obtener 20% de descuento
-                    </small>
+                    <label htmlFor="email" className="form-label">Email</label>
+                    <input type="email" className="form-control" id="email" placeholder="tu@email.com" />
+                    <small className="text-muted auth-small-info">🎓 Usa tu correo @duocuc.cl para obtener 20% de descuento</small>
                   </div>
 
                   <div className="col-md-6">
@@ -96,10 +86,10 @@ export default function RegisterPage() {
                         id="terms"
                       />
                       <label className="form-check-label" htmlFor="terms">
-                        Acepto los{" "}
-                        <a href="#" className="text-decoration-none">
+                        Acepto los{' '}
+                        <Link to="/terms" className="text-decoration-none">
                           términos y condiciones
-                        </a>
+                        </Link>
                       </label>
                     </div>
                   </div>
@@ -119,9 +109,7 @@ export default function RegisterPage() {
 
                   <div className="col-12 mt-4">
                     <div className="d-grid gap-2">
-                      <button type="submit" className="btn btn-neon btn-lg">
-                        Crear Cuenta
-                      </button>
+                      <button type="submit" className="btn btn-neon btn-lg">Crear Cuenta</button>
                     </div>
                   </div>
                 </div>
@@ -131,10 +119,7 @@ export default function RegisterPage() {
 
               <div className="text-center">
                 <p className="text-muted mb-2">¿Ya tienes cuenta?</p>
-                <Link
-                  to="/react-ecommerce/login"
-                  className="btn btn-outline-neon"
-                >
+                <Link to="/login" className="btn btn-outline-neon">
                   Iniciar Sesión
                 </Link>
               </div>
@@ -142,7 +127,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="text-center mt-4">
-            <Link to="/react-ecommerce/" className="text-muted">
+            <Link to="/" className="text-muted">
               ← Volver al inicio
             </Link>
           </div>

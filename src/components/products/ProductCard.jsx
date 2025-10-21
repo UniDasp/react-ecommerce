@@ -14,7 +14,7 @@ export default function ProductCard({ product }) {
         <p className="card-text text-muted small mb-2">{product.category}</p>
         <p className="card-text fw-bold fs-5 text-primary mt-auto mb-3">${product.price.toLocaleString('es-CL')}</p>
         <div className="d-flex gap-2">
-          <Link className="btn btn-neon btn-sm flex-fill" to={`/products/${product.id}`}>Ver detalle</Link>
+          <Link className="btn btn-neon btn-sm flex-fill" to={`/react-ecommerce/products/${product.id}`}>Ver detalle</Link>
           <button className="btn btn-outline-neon btn-sm" onClick={() => addItem(product, 1)} title="Agregar al carrito">
             🛒
           </button>

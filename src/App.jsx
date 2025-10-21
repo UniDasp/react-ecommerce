@@ -7,9 +7,12 @@ import ProductsPage from "./pages/ProductsPage.jsx";
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
+import AccountPage from "./pages/AccountPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import AdminPanel from "./pages/AdminPanel.jsx";
 
 function App() {
   return (
@@ -20,6 +23,8 @@ function App() {
           <Route path="/react-ecommerce/" element={<HomePage />} />
           <Route path="/react-ecommerce/login" element={<LoginPage />} />
           <Route path="/react-ecommerce/register" element={<RegisterPage />} />
+          <Route path="/react-ecommerce/forgot-password" element={<ForgotPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/react-ecommerce/products" element={<ProductsPage />} />
           <Route
             path="/react-ecommerce/products/:id"
@@ -27,6 +32,8 @@ function App() {
           />
           <Route path="/react-ecommerce/cart" element={<CartPage />} />
           <Route path="/react-ecommerce/checkout" element={<CheckoutPage />} />
+          <Route path="/react-ecommerce/account" element={<AccountPage />} />
+          <Route path="/react-ecommerce/admin" element={<AdminPanel />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>

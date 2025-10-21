@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import ProductCard from './ProductCard.jsx'
+import ProductCard from '../products/ProductCard.jsx'
 import { CartProvider, useCart } from '../../context/CartContext.jsx'
 
 function renderWithProviders(ui) {

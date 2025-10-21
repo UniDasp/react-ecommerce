@@ -398,6 +398,64 @@ section:last-child {
 }
 
 /* Empty states */
+
+/* Auth pages small tweaks */
+.login-page, .register-page {
+  padding: 3rem 0 4rem;
+  background: transparent; /* keep neutral */
+}
+.login-page .card, .register-page .card {
+  border-radius: 14px;
+  max-width: 680px;
+  margin: 0 auto;
+  box-shadow: 0 6px 18px rgba(33,37,41,0.04);
+}
+.login-page .section-title, .register-page .section-title {
+  font-size: 1.75rem;
+}
+.auth-small-info {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+.auth-footer-links {
+  margin-top: 1rem;
+}
+.form-control {
+  border-radius: 8px;
+}
+.form-check-label a {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+.text-muted.small-link {
+  color: #6c757d;
+}
+
+/* Auth header */
+.auth-subtitle {
+  margin-top: 0;
+  margin-bottom: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Keep input-with-icon for compatibility but hide icons so forms stay clean */
+.input-with-icon {
+  position: relative;
+}
+.input-with-icon .form-control {
+  padding-left: 1rem; /* normal padding */
+}
+.input-with-icon .icon {
+  display: none;
+}
+
+.btn-neon.btn-lg {
+  padding: 0.85rem 1.25rem;
+  font-size: 1.03rem;
+}
 .text-center .card.gamer-card {
   border: 2px dashed #dee2e6;
   transition: all 0.3s ease;
@@ -406,6 +464,63 @@ section:last-child {
 .text-center .card.gamer-card:hover {
   border-color: #4f46e5;
   transform: translateY(-2px);
+}
+
+/* Admin panel styles */
+.admin-panel .card {
+  border-radius: 12px;
+}
+.admin-panel h5 {
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+}
+.admin-panel .table tbody tr:hover {
+  background: rgba(79,70,229,0.03);
+}
+.admin-panel .btn-sm {
+  padding: 0.35rem 0.6rem;
+}
+.admin-panel .form-control, .admin-panel .form-select {
+  border-radius: 8px;
+}
+
+/* Admin panel visual helpers */
+.admin-summary {
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(33,37,41,0.04);
+}
+.product-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+.product-thumb.placeholder {
+  background: #f1f3f5;
+}
+.admin-panel .badge.bg-secondary {
+  background-color: #6c757d !important;
+  color: #fff;
+}
+.admin-panel .badge.bg-primary {
+  background-color: #4f46e5 !important;
+  color: #fff;
+}
+.admin-panel table th {
+  font-weight: 600;
+}
+.admin-panel .table td {
+  vertical-align: middle;
+}
+.admin-panel .card-body { gap: 0.8rem; display: flex; flex-direction: column; }
+
+/* Admin tabs */
+.admin-tabs .btn {
+  padding: 0.5rem 0.9rem;
+}
+.admin-tabs .btn + .btn {
+  margin-left: 0.4rem;
 }
 
 /* Checkout Page */

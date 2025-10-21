@@ -13,7 +13,7 @@ export default function CartPage() {
             <div className="display-1 mb-4">🛒</div>
             <h2 className="mb-3">Tu carrito está vacío</h2>
             <p className="text-muted mb-4">Agrega productos para continuar con tu compra.</p>
-<Link href="/react-ecommerce/products" className="btn btn-neon">Explorar productos</Link>
+              <Link to="/react-ecommerce/products" className="btn btn-neon">Explorar productos</Link>
           </div>
         </div>
       </div>
@@ -73,7 +73,7 @@ export default function CartPage() {
                 <strong>Total</strong>
                 <strong className="text-primary fs-4">${total.toLocaleString()}</strong>
               </div>
-              <button className="btn btn-neon w-100 mb-2" onClick={() => navigate('/checkout')}>Finalizar Compra</button>
+              <button className="btn btn-neon w-100 mb-2" onClick={() => navigate('/react-ecommerce/checkout')}>Finalizar Compra</button>
               <button className="btn btn-outline-secondary w-100" onClick={clear}>Vaciar carrito</button>
             </div>
           </div>

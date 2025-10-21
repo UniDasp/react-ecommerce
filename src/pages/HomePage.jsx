@@ -40,7 +40,7 @@ export default function HomePage() {
                 <div className="card-body d-flex flex-column">
                   <h3 className="h5 mb-2">{c.t}</h3>
                   <p className="text-muted small mb-3">{c.desc}</p>
-                  <Link to={`/products?category=${encodeURIComponent(c.k)}`} className="btn btn-neon btn-sm mt-auto">Ver productos</Link>
+                  <Link to={`/react-ecommerce/products?category=${encodeURIComponent(c.k)}`} className="btn btn-neon btn-sm mt-auto">Ver productos</Link>
                 </div>
               </div>
             </div>

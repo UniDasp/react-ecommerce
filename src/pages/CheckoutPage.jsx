@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 
 export default function CheckoutPage() {
   const navigate = useNavigate()
   const { items, total, clear } = useCart()
+  const { user } = useAuth()
   const [step, setStep] = useState(1)
   const [processing, setProcessing] = useState(false)
   const [orderSummary, setOrderSummary] = useState(null)
@@ -21,6 +23,37 @@ export default function CheckoutPage() {
     expiracion: '',
     cvv: ''
   })
+
+  // Esto es para comprobar si hay un usuario logeado (if user) y rellenar los datos si es que existe (user.email, user.fullName, etc)
+  useEffect(() => {
+    if (user && user.email) {
+      setFormData(prev => ({ ...prev, email: prev.email || user.email }))
+    }
+
+    if (user && user.fullName) {
+      setFormData(prev => ({ ...prev, nombre: prev.nombre || user.fullName }))
+    }
+
+    if (user && user.phone) {
+      setFormData(prev => ({ ...prev, telefono: prev.telefono || user.phone }))
+    }
+
+    if (user && user.address) {
+      setFormData(prev => ({ ...prev, direccion: prev.direccion || user.address }))
+    }
+
+    if (user && user.region) {
+      setFormData(prev => ({ ...prev, region: prev.region || user.region }))
+    }
+
+    if (user && user.city) {
+      setFormData(prev => ({ ...prev, ciudad: prev.city || user.city }))
+    }
+
+
+
+
+  }, [user])
 
   const esEstudianteDuoc = formData.email.toLowerCase().endsWith('@duocuc.cl')
   const descuento = esEstudianteDuoc ? total * 0.20 : 0
@@ -66,7 +99,7 @@ export default function CheckoutPage() {
             <div className="display-1 mb-4">🛒</div>
             <h2 className="mb-3">Tu carrito está vacío</h2>
             <p className="text-muted mb-4">Agrega productos para continuar con tu compra.</p>
-            <a href="/products" className="btn btn-neon">Explorar Productos</a>
+            <Link to="/products" className="btn btn-neon">Explorar Productos</Link>
           </div>
         </div>
       </div>
@@ -96,8 +129,8 @@ export default function CheckoutPage() {
                 <strong>Total pagado:</strong> ${orderSummary.totalConDescuento.toLocaleString()}
               </div>
               <div className="d-grid gap-2">
-                <button className="btn btn-neon" onClick={() => navigate('/')}>Volver al inicio</button>
-                <button className="btn btn-outline-secondary" onClick={() => navigate('/products')}>Seguir comprando</button>
+                <button className="btn btn-neon" onClick={() => navigate('/react-ecommerce/')}>Volver al inicio</button>
+                <button className="btn btn-outline-secondary" onClick={() => navigate('/react-ecommerce/products')}>Seguir comprando</button>
               </div>
             </div>
           </div>
