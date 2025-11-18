@@ -74,7 +74,7 @@ describe('ProductCard', () => {
     
     const detailLink = screen.getByText('Ver detalle')
     expect(detailLink).toBeTruthy()
-    expect(detailLink.getAttribute('href')).toBe('/products/TEST003')
+    expect(detailLink.getAttribute('href')).toBe('/react-ecommerce/products/TEST003')
   })
 
   it('permite agregar múltiples productos al carrito', () => {

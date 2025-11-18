@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import * as paymentsService from '../services/payments.js'
 
 export default function CheckoutPage() {
   const navigate = useNavigate()
   const { items, total, clear } = useCart()
-  const { user } = useAuth()
+  const { user, token: authToken, isAuthenticated } = useAuth()
   const [step, setStep] = useState(1)
   const [processing, setProcessing] = useState(false)
   const [orderSummary, setOrderSummary] = useState(null)
@@ -26,6 +27,15 @@ export default function CheckoutPage() {
 
   // Esto es para comprobar si hay un usuario logeado (if user) y rellenar los datos si es que existe (user.email, user.fullName, etc)
   useEffect(() => {
+    // restore saved checkout form if user was redirected to login
+    try {
+      const saved = sessionStorage.getItem('checkout-form')
+      if (saved) {
+        setFormData(prev => ({ ...prev, ...JSON.parse(saved) }))
+        sessionStorage.removeItem('checkout-form')
+      }
+    } catch (e) {}
+
     if (user && user.email) {
       setFormData(prev => ({ ...prev, email: prev.email || user.email }))
     }
@@ -50,9 +60,6 @@ export default function CheckoutPage() {
       setFormData(prev => ({ ...prev, ciudad: prev.city || user.city }))
     }
 
-
-
-
   }, [user])
 
   const esEstudianteDuoc = formData.email.toLowerCase().endsWith('@duocuc.cl')
@@ -65,6 +72,14 @@ export default function CheckoutPage() {
 
   const handleSubmitDatos = (e) => {
     e.preventDefault()
+    if (!isAuthenticated) {
+      // save current form so we can restore it after login
+      try { sessionStorage.setItem('checkout-form', JSON.stringify(formData)) } catch (err) {}
+      // redirect to login and after login the user should be sent back to checkout
+      navigate('/react-ecommerce/login', { state: { from: '/react-ecommerce/checkout' } })
+      return
+    }
+
     if (formData.nombre && formData.email && formData.telefono && formData.direccion && formData.ciudad && formData.region) {
       setStep(2)
     }
@@ -77,18 +92,111 @@ export default function CheckoutPage() {
         return
       }
     }
-    setProcessing(true)
-    setOrderSummary({
-      total: total,
-      descuento: descuento,
-      totalConDescuento: totalConDescuento,
-      esEstudianteDuoc: esEstudianteDuoc
-    })
-    setTimeout(() => {
-      setProcessing(false)
-      setStep(3)
-      clear()
-    }, 3000)
+
+    const doSimulatedSuccess = () => {
+      setProcessing(true)
+      setOrderSummary({
+        total: total,
+        descuento: descuento,
+        totalConDescuento: totalConDescuento,
+        esEstudianteDuoc: esEstudianteDuoc
+      })
+        setTimeout(() => {
+          setProcessing(false)
+          setStep(3)
+          // persist a simulated order locally so user can view it later
+          try {
+            const ordersRaw = localStorage.getItem('levelup-orders')
+            const orders = ordersRaw ? JSON.parse(ordersRaw) : []
+            const order = {
+              id: `LOCAL-${Date.now().toString(36).toUpperCase()}`,
+              date: new Date().toISOString(),
+              total: totalConDescuento,
+              descuento,
+              items: items.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+              metodoPago: formData.metodoPago,
+              email: formData.email,
+              simulated: true
+            }
+            orders.unshift(order)
+            localStorage.setItem('levelup-orders', JSON.stringify(orders))
+          } catch (e) {
+            console.warn('Could not persist simulated order', e)
+          }
+          clear()
+        }, 1500)
+    }
+
+    // If user is authenticated and backend is available, attempt real payment flow
+    (async () => {
+      try {
+        const token = authToken || null
+        if (!token) {
+          return doSimulatedSuccess()
+        }
+
+        const paymentDto = {
+          userId: user.id,
+          userEmail: formData.email,
+          totalAmount: totalConDescuento,
+          paymentMethod: formData.metodoPago,
+          shippingAddress: formData.direccion,
+          shippingCity: formData.ciudad,
+          shippingPhone: formData.telefono,
+          products: items.map(it => ({ id: it.id, code: it.code || it.sku || '', name: it.name, price: it.price, quantity: it.quantity }))
+        }
+
+        const init = await paymentsService.initiatePayment(token, paymentDto)
+        // backend may return keys with spanish names: pagoId, tokenPago
+        const paymentId = init?.id || init?.paymentId || init?.payment_id || init?.pagoId || init?.pago_id || null
+        if (paymentId && formData.metodoPago === 'tarjeta') {
+          const [mm, yy] = (formData.expiracion || '').split('/')
+          const processReq = {
+            cardNumber: (formData.numeroTarjeta || '').replace(/\s+/g, ''),
+            cardholderName: formData.nombreTarjeta || '',
+            expirationMonth: mm || '',
+            expirationYear: yy || '',
+            cvv: formData.cvv || '',
+            cardType: ''
+          }
+          const paymentToken = init?.paymentToken || init?.token || init?.paymentToken || init?.tokenPago || init?.token_pago || init?.tokenPago || null
+          await paymentsService.confirmPayment(token, paymentId, processReq, paymentToken)
+        }
+
+        setOrderSummary({
+          total: total,
+          descuento: descuento,
+          totalConDescuento: totalConDescuento,
+          esEstudianteDuoc: esEstudianteDuoc,
+          backend: init
+        })
+        // persist order returned by backend if possible
+        try {
+          const ordersRaw = localStorage.getItem('levelup-orders')
+          const orders = ordersRaw ? JSON.parse(ordersRaw) : []
+          const order = {
+            id: init?.id || init?.paymentId || init?.pagoId || init?.pago_id || init?.payment_id || `BE-${Date.now().toString(36).toUpperCase()}`,
+            date: new Date().toISOString(),
+            total: totalConDescuento,
+            descuento,
+            items: items.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+            metodoPago: formData.metodoPago,
+            email: formData.email,
+            backend: init
+          }
+          orders.unshift(order)
+          localStorage.setItem('levelup-orders', JSON.stringify(orders))
+        } catch (e) {
+          console.warn('Could not persist backend order', e)
+        }
+        setProcessing(false)
+        setStep(3)
+        clear()
+      } catch (err) {
+        console.warn('Payment flow failed, falling back to simulation', err)
+        doSimulatedSuccess()
+      }
+    })()
   }
 
   if (items.length === 0 && step < 3) {
@@ -99,7 +207,7 @@ export default function CheckoutPage() {
             <div className="display-1 mb-4">🛒</div>
             <h2 className="mb-3">Tu carrito está vacío</h2>
             <p className="text-muted mb-4">Agrega productos para continuar con tu compra.</p>
-            <Link to="/products" className="btn btn-neon">Explorar Productos</Link>
+            <Link to="/react-ecommerce/products" className="btn btn-neon">Explorar Productos</Link>
           </div>
         </div>
       </div>

@@ -34,7 +34,8 @@ export default function Navbar() {
                   <li><span className="dropdown-item-text">{user.username}</span></li>
                   <li><hr className="dropdown-divider" /></li>
                   <li><Link className="dropdown-item" to="/react-ecommerce/account">Mi cuenta</Link></li>
-                  {user.role === 'admin' && (
+                  <li><Link className="dropdown-item" to="/react-ecommerce/mis-pagos">Mis pagos</Link></li>
+                  {(user && (user.roles?.includes('ROLE_ADMIN') || user.roles?.includes('admin') || user.role === 'admin')) && (
                     <li><Link className="dropdown-item" to="/react-ecommerce/admin">Panel Admin</Link></li>
                   )}
                   <li><button className="dropdown-item" onClick={() => logout()}>Cerrar sesión</button></li>

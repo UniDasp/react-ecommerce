@@ -1,21 +1,23 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setStatus(null)
-    const res = await login(email, password)
+    const res = await login(username, password)
     if (res.ok) {
       setStatus({ ok: true, msg: 'Inicio de sesión exitoso. Redirigiendo...' })
-      setTimeout(() => navigate('/react-ecommerce/'), 700)
+      const dest = (location.state && location.state.from) ? location.state.from : '/react-ecommerce/'
+      setTimeout(() => navigate(dest), 700)
     } else {
       setStatus({ ok: false, msg: 'Usuario o contraseña incorrectos' })
     }
@@ -32,8 +34,8 @@ export default function LoginPage() {
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label htmlFor="email" className="form-label">Email</label>
-                  <input value={email} onChange={e => setEmail(e.target.value)} type="email" className="form-control" id="email" placeholder="tu@email.com" />
+                  <label htmlFor="username" className="form-label">Usuario</label>
+                  <input value={username} onChange={e => setUsername(e.target.value)} type="text" className="form-control" id="username" placeholder="usuario" />
                 </div>
 
                 <div className="mb-3">
