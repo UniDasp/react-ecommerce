@@ -38,12 +38,10 @@ export async function changePassword(token, body) {
 }
 
 export async function recoverPassword(body) {
-  // body should be { email: 'user@example.com' }
   return await req('/autenticacion/recuperar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 export async function resetPassword(body) {
-  // body should be { token: '...', newPassword: '...', confirmPassword: '...' }
   return await req('/autenticacion/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }
 

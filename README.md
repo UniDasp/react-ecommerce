@@ -1,7 +1,3 @@
-Perfecto, aquí va una versión más limpia, directa y sin tantos adornos, manteniendo el tono informal pero más profesional.
-
----
-
 # LEVEL-UP GAMER — React E-commerce
 
 Tienda online full-stack creada como proyecto práctico, con frontend en **React (Vite)** y backend en **Spring Boot**. Incluye autenticación con **JWT**, recuperación de contraseña (en desarrollo vía webhook de Discord), un flujo de pago simulado, manejo de stock atómico y un panel de administración básico.

@@ -23,8 +23,6 @@ export default function PaymentsPage() {
             console.warn('Fetching payments from backend failed, falling back to localStorage', err)
           }
         }
-
-        // fallback: read localStorage persisted orders
         try {
           const raw = localStorage.getItem('levelup-orders')
           const arr = raw ? JSON.parse(raw) : []

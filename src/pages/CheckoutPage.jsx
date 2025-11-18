@@ -24,10 +24,7 @@ export default function CheckoutPage() {
     expiracion: '',
     cvv: ''
   })
-
-  // Esto es para comprobar si hay un usuario logeado (if user) y rellenar los datos si es que existe (user.email, user.fullName, etc)
   useEffect(() => {
-    // restore saved checkout form if user was redirected to login
     try {
       const saved = sessionStorage.getItem('checkout-form')
       if (saved) {
@@ -73,9 +70,7 @@ export default function CheckoutPage() {
   const handleSubmitDatos = (e) => {
     e.preventDefault()
     if (!isAuthenticated) {
-      // save current form so we can restore it after login
       try { sessionStorage.setItem('checkout-form', JSON.stringify(formData)) } catch (err) {}
-      // redirect to login and after login the user should be sent back to checkout
       navigate('/react-ecommerce/login', { state: { from: '/react-ecommerce/checkout' } })
       return
     }
@@ -104,7 +99,6 @@ export default function CheckoutPage() {
         setTimeout(() => {
           setProcessing(false)
           setStep(3)
-          // persist a simulated order locally so user can view it later
           try {
             const ordersRaw = localStorage.getItem('levelup-orders')
             const orders = ordersRaw ? JSON.parse(ordersRaw) : []
@@ -126,8 +120,6 @@ export default function CheckoutPage() {
           clear()
         }, 1500)
     }
-
-    // If user is authenticated and backend is available, attempt real payment flow
     (async () => {
       try {
         const token = authToken || null
@@ -147,7 +139,6 @@ export default function CheckoutPage() {
         }
 
         const init = await paymentsService.initiatePayment(token, paymentDto)
-        // backend may return keys with spanish names: pagoId, tokenPago
         const paymentId = init?.id || init?.paymentId || init?.payment_id || init?.pagoId || init?.pago_id || null
         if (paymentId && formData.metodoPago === 'tarjeta') {
           const [mm, yy] = (formData.expiracion || '').split('/')
@@ -170,7 +161,6 @@ export default function CheckoutPage() {
           esEstudianteDuoc: esEstudianteDuoc,
           backend: init
         })
-        // persist order returned by backend if possible
         try {
           const ordersRaw = localStorage.getItem('levelup-orders')
           const orders = ordersRaw ? JSON.parse(ordersRaw) : []

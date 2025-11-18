@@ -4,7 +4,6 @@ function buildQuery(params = {}) {
   const q = new URLSearchParams()
   Object.entries(params).forEach(([k, v]) => {
     if (v === undefined || v === null || v === '') return
-    // allow boolean and numeric
     q.append(k, String(v))
   })
   return q.toString() ? `?${q.toString()}` : ''

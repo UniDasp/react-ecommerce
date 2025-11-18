@@ -26,7 +26,6 @@ function reducer(state, action) {
       let items
       const stock = action.item?.stock ?? null
       if (existing) {
-        // cap at stock if provided
         const newQty = existing.quantity + action.quantity
         const capped = (stock !== null && !isNaN(stock)) ? Math.min(newQty, stock) : newQty
         items = state.items.map(i => i.id === action.item.id ? { ...i, quantity: capped } : i)
@@ -50,7 +49,6 @@ function reducer(state, action) {
       return newState
     }
     case 'UPDATE_QTY': {
-      // enforce min 1 and max stock (if present)
       const desired = Math.max(1, action.quantity || 1)
       newState = { ...state, items: state.items.map(i => {
         if (i.id !== action.id) return i
@@ -74,7 +72,6 @@ export function CartProvider({ children }) {
       items: state.items,
       total,
       addItem: (item, quantity = 1) => {
-        // enforce stock before dispatching; return result for UI
         const existing = state.items.find(i => i.id === item.id)
         const currentQty = existing ? existing.quantity : 0
         const stock = item?.stock ?? null

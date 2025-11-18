@@ -37,14 +37,11 @@ export function AuthProvider({ children }) {
     } catch (e) {
     }
   }, [token])
-
-  // Helper: parse a JWT (no validation) to extract payload
   const parseJwt = (t) => {
     try {
       const parts = t.split('.')
       if (parts.length < 2) return null
       const payload = parts[1]
-      // base64url -> base64
       const b64 = payload.replace(/-/g, '+').replace(/_/g, '/')
       const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4)
       const json = atob(padded)
@@ -53,9 +50,6 @@ export function AuthProvider({ children }) {
       return null
     }
   }
-
-  // If we have a token but no user, try to derive user info from the token payload
-  // Function to fetch full profile from backend using token
   const fetchProfile = async (t) => {
     if (!t) return { ok: false }
     try {
@@ -64,9 +58,7 @@ export function AuthProvider({ children }) {
       })
       if (!res.ok) return { ok: false, status: res.status }
       const data = await res.json()
-      // data may be nested, try common shapes
       const u = data.user || data.usuario || data || {}
-      // normalize roles
       const rolesRaw = u.roles || u.authorities || u.role || []
       const rolesArr = Array.isArray(rolesRaw) ? rolesRaw : (rolesRaw ? [rolesRaw] : [])
 
@@ -89,15 +81,12 @@ export function AuthProvider({ children }) {
       return { ok: false, error: err.message }
     }
   }
-
-  // when token changes, try to load full profile from backend
   useEffect(() => {
     let mounted = true
     const load = async () => {
       if (!token) return
       const res = await fetchProfile(token)
       if (!res.ok && mounted) {
-        // fallback: keep any parsed token info if available
         const payload = parseJwt(token)
         if (payload) {
           const username = payload.username || payload.sub || payload.user || null
@@ -121,18 +110,15 @@ export function AuthProvider({ children }) {
       })
 
       if (!res.ok) {
-        // devolver error simple
         return { ok: false, status: res.status }
       }
 
       const data = await res.json()
-        // Try multiple token/property names and nested locations
         const receivedToken = data.token || data.accessToken || data.jwt || null
         const parsed = receivedToken ? parseJwt(receivedToken) : null
 
         const readKey = (obj, key) => {
           if (!obj) return undefined
-          // support nested like 'user.username'
           if (key.includes('.')) {
             return key.split('.').reduce((o, k) => (o ? o[k] : undefined), obj)
           }
@@ -141,13 +127,10 @@ export function AuthProvider({ children }) {
 
         const getFirst = (keys) => {
           for (const k of keys) {
-            // top-level in response
             const v1 = readKey(data, k)
             if (v1 !== undefined && v1 !== null) return v1
-            // nested common properties
             const v2 = readKey(data.user || data.usuario || {}, k)
             if (v2 !== undefined && v2 !== null) return v2
-            // token payload
             const v3 = readKey(parsed, k)
             if (v3 !== undefined && v3 !== null) return v3
           }
@@ -178,15 +161,11 @@ export function AuthProvider({ children }) {
           city: resCity,
           roles: rolesArr
         }
-
-        // Prefer fetching the full profile from backend using the token
         setToken(receivedToken || null)
         const profile = receivedToken ? await fetchProfile(receivedToken) : null
         if (profile && profile.ok) {
           return { ok: true, user: profile.user, token: receivedToken }
         }
-
-        // fallback to best-effort user object
         setUser(userObj)
         return { ok: true, user: userObj, token: receivedToken }
     } catch (err) {
@@ -198,25 +177,18 @@ export function AuthProvider({ children }) {
     setUser(null)
     setToken(null)
   }
-
-  // Update the current user's profile by calling backend and updating local state/localStorage
   const updateProfile = async (id, updates) => {
     try {
-      // Determine id to update. Prefer fetching the authoritative profile from /autenticacion/yo
       let targetId = id
-
-      // If we have a token, fetch the full profile first and prefer that id
       if (token) {
         const prof = await fetchProfile(token)
         if (prof && prof.ok && prof.user && prof.user.id) {
-          // update local user with fresh profile
           setUser(prof.user)
           targetId = prof.user.id
         }
       }
 
       if (!targetId) {
-        // fallback to current memory user or token payload
         targetId = user?.id || null
         if (!targetId && token) {
           const parsed = parseJwt(token)
@@ -229,26 +201,17 @@ export function AuthProvider({ children }) {
       }
 
       if (!token) return { ok: false, error: 'No auth token' }
-
-      // ensure targetId is a plain string/number (avoid passing literal 'null')
       const cleanedId = (typeof targetId === 'string' && targetId.toLowerCase() === 'null') ? null : targetId
       if (!cleanedId) return { ok: false, error: 'Resolved user id is invalid' }
-
-      // Try to parse a numeric id (server expects a Long). If parsing fails, still attempt to use the string form
       let numericId = Number(cleanedId)
       if (typeof cleanedId === 'string' && isNaN(numericId)) {
-        // try integer parse (handles numeric strings with spaces)
         const parsed = parseInt(cleanedId, 10)
-        if (!isNaN(parsed)) numericId = parsed
       }
       const idForUrl = (!isNaN(numericId) && numericId !== null) ? numericId : cleanedId
       const url = `http://localhost:8080/usuarios/${idForUrl}`
-      // debug info: do not log full token in production
       try {
         console.debug('AuthContext.updateProfile -> url, cleanedId, numericId, tokenPresent, updates', { url, cleanedId, numericId, tokenPresent: !!token, updates })
       } catch (e) {}
-
-      // include id in body as numeric value when possible; only include defined fields to avoid overwriting with null
       const bodyToSend = {}
       for (const [k, v] of Object.entries(updates || {})) {
         if (v !== null && v !== undefined) bodyToSend[k] = v
@@ -265,8 +228,6 @@ export function AuthProvider({ children }) {
         },
         body: JSON.stringify(bodyToSend)
       })
-
-      // read raw text first (some backends return empty body on success)
       const rawText = await res.text().catch(() => null)
       let parsed = null
       try {
@@ -281,10 +242,7 @@ export function AuthProvider({ children }) {
         try { console.error('AuthContext.updateProfile failed', { url, status: res.status, body: rawText }) } catch (e) {}
         return { ok: false, status: res.status, error: rawText || res.statusText }
       }
-
-      // If backend returned updated resource as JSON, use it. If it returned no body (204), try to refresh profile.
       if (parsed) {
-        // after successful update, refresh profile from server to ensure canonical state
         if (token) {
           const refreshed = await fetchProfile(token)
           if (refreshed && refreshed.ok) {
@@ -294,16 +252,12 @@ export function AuthProvider({ children }) {
         setUser(prev => prev ? ({ ...prev, ...parsed }) : parsed)
         return { ok: true, user: parsed }
       }
-
-      // No JSON body returned. Attempt to refresh canonical profile.
       if (token) {
         const refreshed = await fetchProfile(token)
         if (refreshed && refreshed.ok) {
           return { ok: true, user: refreshed.user }
         }
       }
-
-      // Fall back to merging the updates we sent
       setUser(prev => prev ? ({ ...prev, ...(updates || {}) }) : (updates || {}))
       return { ok: true, user: updates || null }
     } catch (err) {

@@ -41,7 +41,6 @@ export async function searchProducts(query) {
 export async function getProductById(id) {
   const url = `${BASE}/productos/${id}`
   const data = await safeFetch(url)
-  // If backend returns array or object, normalize
   if (Array.isArray(data)) {
     const prod = data.find(p => String(p.id) === String(id))
     if (!prod) throw new Error('Producto no encontrado')

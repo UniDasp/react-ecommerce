@@ -26,12 +26,8 @@ export default function AdminPanel() {
   const [newCategory, setNewCategory] = useState({ name: '', code: '', description: '' })
 
   const [tab, setTab] = useState('products')
-
-  // Orders / payments
   const [payments, setPayments] = useState([])
   const [paymentsLoading, setPaymentsLoading] = useState(false)
-
-  // Audit tab state
   const [auditLoading, setAuditLoading] = useState(false)
   const [auditResponse, setAuditResponse] = useState(null) // full paged response
   const [auditParams, setAuditParams] = useState({ username: '', path: '', success: '', from: '', to: '', sort: '', page: 0, size: 50 })
@@ -93,8 +89,6 @@ export default function AdminPanel() {
         if (mounted) setLoading(false)
       }
     })()
-
-    // load users separately (so products block doesn't fail entire load if users fail)
     ;(async () => {
       setUsersLoading(true)
       try {
@@ -114,22 +108,17 @@ export default function AdminPanel() {
       }
     })()
 
-    // if audit tab open, do not auto-fetch here; user will trigger via Buscar
-
     return () => { mounted = false }
   }, [token])
 
 
   const changeUserRole = (id, newRole) => {
-    // Prevent changing own role
     if (user.id === id) return
     ;(async () => {
       setUsersSaving(true)
       try {
-        // convert simple role to roles array expected by backend
         const rolesArr = (newRole === 'admin') ? ['ROLE_ADMIN'] : ['ROLE_USER']
         const res = await updateUserRoles(token || null, id, rolesArr)
-        // res may be updated DTO or null; update local state optimistically
         setUsers(prev => prev.map(u => u.id === id ? ({ ...u, roles: rolesArr, role: newRole, ...((res && typeof res === 'object') ? res : {}) }) : u))
       } catch (err) {
         console.error('Error updating user role', err)
@@ -139,8 +128,6 @@ export default function AdminPanel() {
       }
     })()
   }
-
-  // Product edit helpers
   const startEdit = (id) => {
     const p = products.find(x => x.id === id)
     if (!p) return
@@ -165,7 +152,6 @@ export default function AdminPanel() {
       const body = {
         name: editDraft.name,
         description: editDraft.description,
-        // ensure numeric price
         price: (() => { const v = Number(editDraft.price); return Number.isFinite(v) ? v : 0 })(),
         categoryId: editDraft.categoryId ? Number(editDraft.categoryId) : null,
         stock: (() => { const s = Number(editDraft.stock); return Number.isFinite(s) ? s : 0 })(),
@@ -199,8 +185,6 @@ export default function AdminPanel() {
       setSaving(false)
     }
   }
-
-  // Display helpers: backend may return different field names
   const getDisplayUsername = (u) => {
     return u?.username || u?.user || u?.userName || u?.name || ((u?.firstName || u?.lastName) ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : '') || ''
   }
@@ -218,14 +202,12 @@ export default function AdminPanel() {
   }
 
   const startEditUser = (u) => {
-    // prevent editing admin accounts
     const isTargetAdmin = (u.role === 'admin') || (Array.isArray(u.roles) && (u.roles.includes('ROLE_ADMIN') || u.roles.includes('ADMIN')))
     if (isTargetAdmin) {
       alert('No se pueden editar usuarios con rol de administrador desde aquí.')
       return
     }
     setEditingUserId(u.id)
-    // clone only editable fields
     setUserEditDraft({
       username: u.username || '',
       email: u.email || '',
@@ -249,7 +231,6 @@ export default function AdminPanel() {
     if (!userEditDraft) return
     setUsersSaving(true)
     try {
-      // Prevent editing admin accounts (double-check)
       const target = users.find(u => u.id === id)
       const isTargetAdmin = (target?.role === 'admin') || (Array.isArray(target?.roles) && (target.roles.includes('ROLE_ADMIN') || target.roles.includes('ADMIN')))
       if (isTargetAdmin) {
@@ -257,11 +238,7 @@ export default function AdminPanel() {
         setUsersSaving(false)
         return
       }
-
-      // build payload with only keys present in draft (exclude empty undefined)
       const payload = Object.fromEntries(Object.entries(userEditDraft).filter(([k, v]) => v !== undefined))
-
-      // If role was edited, convert to backend `roles` array and prevent changing own role
       if (payload.role !== undefined) {
         if (id === user.id) {
           alert('No puedes cambiar tu propio rol.')
@@ -272,7 +249,6 @@ export default function AdminPanel() {
         delete payload.role
       }
       const res = await updateUser(token || null, id, payload)
-      // update local list with returned data when possible
       setUsers(prev => prev.map(u => u.id === id ? ({ ...u, ...(res || payload) }) : u))
       cancelEditUser()
     } catch (err) {
@@ -656,7 +632,6 @@ export default function AdminPanel() {
                                 try {
                                   const res = await adminConfirmPayment(token, p.id)
                                   alert(res?.mensaje || 'Pedido confirmado')
-                                  // refresh list
                                   const list = await listAllPayments(token)
                                   setPayments(Array.isArray(list) ? list : (list || []))
                                 } catch (err) {
@@ -719,7 +694,6 @@ export default function AdminPanel() {
                 <button className="btn btn-sm btn-neon" onClick={async () => {
                   setAuditLoading(true)
                   try {
-                    // remove empty values
                     const params = Object.fromEntries(Object.entries(auditParams).filter(([k, v]) => v !== '' && v !== undefined && v !== null))
                     const res = await listAudit(token || null, params)
                     console.debug('AdminPanel: audit res ->', res)

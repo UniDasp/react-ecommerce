@@ -17,8 +17,6 @@ export default function ProductCard({ product }) {
       }
     }
   }
-
-  // stock badges
   const stockBadge = () => {
     if (stock === null || stock === undefined) return null
     if (stock <= 0) return <div className="text-danger small mb-2">Agotado</div>

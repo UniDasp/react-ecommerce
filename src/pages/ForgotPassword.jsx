@@ -14,7 +14,6 @@ export default function ForgotPassword() {
     setLoading(true)
     try {
       const res = await authService.recoverPassword({ email })
-      // backend may return a message or token (dev). Show friendly message.
       const msg = (res && (res.mensaje || res.message || JSON.stringify(res))) || 'Si el correo existe, se enviaron instrucciones.'
       setStatus({ ok: true, msg })
     } catch (err) {

@@ -11,7 +11,6 @@ export default function ChangePassword() {
   const [loading, setLoading] = useState(false)
 
   if (!isAuthenticated) {
-    // redirect to login, preserving destination
     navigate('/react-ecommerce/login', { replace: true, state: { from: '/react-ecommerce/cambiar-contrasena' } })
     return null
   }
@@ -40,7 +39,6 @@ export default function ChangePassword() {
       await authService.changePassword(token, body)
       setStatus({ ok: true, msg: 'Contraseña cambiada correctamente.' })
       setForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-      // navigate back to account after a short delay
       setTimeout(() => navigate('/react-ecommerce/account'), 1200)
     } catch (err) {
       const msg = err?.body?.error || err?.body?.mensaje || err?.body || (err.message || 'Error cambiando contraseña')

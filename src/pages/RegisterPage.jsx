@@ -54,8 +54,6 @@ export default function RegisterPage() {
         setStatus({ ok: false, msg: `Error ${res.status}: ${errText || res.statusText}` })
         return
       }
-
-      // Intentamos loguear automáticamente al usuario recién creado
       setStatus({ ok: true, msg: 'Registro exitoso. Iniciando sesión...' })
       try {
         const loginRes = await login(form.username, form.password)
@@ -63,7 +61,6 @@ export default function RegisterPage() {
           setStatus({ ok: true, msg: 'Inicio de sesión correcto. Redirigiendo...' })
           setTimeout(() => navigate('/react-ecommerce/'), 900)
         } else {
-          // Si el login automático falla, redirigimos al login manual
           setStatus({ ok: true, msg: 'Registro OK. Por favor inicia sesión.' })
           setTimeout(() => navigate('/react-ecommerce/login'), 1200)
         }
