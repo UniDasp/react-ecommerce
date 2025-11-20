@@ -1,9 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
+import { register as registerUser } from '../services/auth.js'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({
     username: '',
     password: '',
@@ -43,15 +45,10 @@ export default function RegisterPage() {
         region: form.region
       }
 
-      const res = await fetch('http://localhost:8080/autenticacion/registrar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      })
+      const res = await registerUser(body)
 
-      if (!res.ok) {
-        const errText = await res.text().catch(() => null)
-        setStatus({ ok: false, msg: `Error ${res.status}: ${errText || res.statusText}` })
+      if (!res) {
+        setStatus({ ok: false, msg: 'Error al registrar usuario' })
         return
       }
       setStatus({ ok: true, msg: 'Registro exitoso. Iniciando sesión...' })

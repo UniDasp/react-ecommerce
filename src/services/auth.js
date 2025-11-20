@@ -1,48 +1,35 @@
-const BASE = 'http://localhost:8080'
-
-async function req(path, opts = {}) {
-  const res = await fetch(`${BASE}${path}`, opts)
-  const txt = await res.text().catch(() => null)
-  let parsed = null
-  try { parsed = txt ? JSON.parse(txt) : null } catch (e) { parsed = null }
-  if (!res.ok) throw { status: res.status, body: parsed || txt }
-  return parsed
-}
+import { req } from './http.js'
 
 export async function login(credentials) {
-  return await req('/autenticacion/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(credentials) })
+  return await req('/autenticacion/login', null, { method: 'POST', body: credentials })
 }
 
 export async function register(body) {
-  return await req('/autenticacion/registrar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  return await req('/autenticacion/registrar', null, { method: 'POST', body })
 }
 
 export async function refresh(token) {
-  return await req('/autenticacion/refrescar', { method: 'POST', headers: { 'Authorization': token } })
+  return await req('/autenticacion/refrescar', token, { method: 'POST' })
 }
 
 export async function validate(token) {
-  return await req('/autenticacion/validar', { method: 'GET', headers: { 'Authorization': token } })
+  return await req('/autenticacion/validar', token, { method: 'GET' })
 }
 
 export async function getCurrentUser(token) {
-  return await req('/autenticacion/yo', { method: 'GET', headers: { 'Authorization': token } })
+  return await req('/autenticacion/yo', token, { method: 'GET' })
 }
 
 export async function changePassword(token, body) {
-  return await req('/autenticacion/cambiar-contrasena', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify(body)
-  })
+  return await req('/autenticacion/cambiar-contrasena', token, { method: 'POST', body })
 }
 
 export async function recoverPassword(body) {
-  return await req('/autenticacion/recuperar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  return await req('/autenticacion/recuperar', null, { method: 'POST', body })
 }
 
 export async function resetPassword(body) {
-  return await req('/autenticacion/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  return await req('/autenticacion/reset', null, { method: 'POST', body })
 }
 
 export default { login, register, refresh, validate, getCurrentUser, changePassword, recoverPassword, resetPassword }

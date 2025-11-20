@@ -1,47 +1,25 @@
-const BASE = 'http://localhost:8080'
-
-async function req(url, token, opts = {}) {
-  const headers = opts.headers || {}
-  if (token) headers['Authorization'] = `Bearer ${token}`
-  if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json'
-  const res = await fetch(url, { ...opts, headers })
-  const txt = await res.text().catch(() => null)
-  let parsed = null
-  try { parsed = txt ? JSON.parse(txt) : null } catch (e) { parsed = null }
-  if (!res.ok) throw { status: res.status, body: parsed || txt }
-  return parsed
-}
+import { req } from './http.js'
 
 export async function initiatePayment(token, paymentDto) {
-  const url = `${BASE}/pagos`
-  return await req(url, token, { method: 'POST', body: JSON.stringify(paymentDto) })
+  return await req('/pagos', token, { method: 'POST', body: paymentDto })
 }
 
 export async function confirmPayment(token, id, processRequest, paymentToken) {
-  const url = `${BASE}/pagos/${id}/confirmar`
   const headers = { 'Content-Type': 'application/json' }
   if (paymentToken) headers['Authorization'] = paymentToken
-  const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(processRequest) })
-  const txt = await res.text().catch(() => null)
-  let parsed = null
-  try { parsed = txt ? JSON.parse(txt) : null } catch (e) { parsed = null }
-  if (!res.ok) throw { status: res.status, body: parsed || txt }
-  return parsed
+  return await req(`/pagos/${id}/confirmar`, null, { method: 'POST', headers, body: processRequest })
 }
 
 export async function getMyPayments(token) {
-  const url = `${BASE}/pagos/mis-pagos`
-  return await req(url, token, { method: 'GET' })
+  return await req('/pagos/mis-pagos', token, { method: 'GET' })
 }
 
 export async function getPaymentById(token, id) {
-  const url = `${BASE}/pagos/${id}`
-  return await req(url, token, { method: 'GET' })
+  return await req(`/pagos/${id}`, token, { method: 'GET' })
 }
 
 export async function refundPayment(token, id) {
-  const url = `${BASE}/pagos/${id}/reembolsar`
-  return await req(url, token, { method: 'POST' })
+  return await req(`/pagos/${id}/reembolsar`, token, { method: 'POST' })
 }
 
 export default { initiatePayment, confirmPayment, getMyPayments, getPaymentById, refundPayment }

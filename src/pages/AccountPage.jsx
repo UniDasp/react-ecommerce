@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
+import { getCurrentUser } from '../services/auth.js'
 import { useNavigate, Link } from 'react-router-dom'
+import Unauthorized from '../components/Unauthorized.jsx'
 
 export default function AccountPage() {
-  const { user, updateProfile } = useAuth()
+  const { user, updateProfile, handleUnauthorized } = useAuth()
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -16,8 +18,20 @@ export default function AccountPage() {
   })
   const [status, setStatus] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [fetchError, setFetchError] = useState(null)
 
   useEffect(() => {
+    let mounted = true
+    ;(async () => {
+
+      try {
+        if (!user) {
+
+        }
+        const token = null
+      } catch (e) {}
+    })()
+
     if (user) {
       setForm(prev => ({
         ...prev,
@@ -31,6 +45,34 @@ export default function AccountPage() {
         email: user.email || ''
       }))
     }
+
+    ;(async () => {
+      try {
+        const token = (typeof window !== 'undefined' && localStorage) ? localStorage.getItem('levelup-token') : null
+        if (!token) return
+        const res = await getCurrentUser(token)
+        if (!res) return
+        const u = res.user || res.usuario || res || {}
+        if (!mounted) return
+        const resolvedCity = u.city || u.ciudad || u.locality || u.localidad || u.town || (u.address && (u.address.city || u.address.ciudad)) || ''
+        setForm(prev => ({
+          ...prev,
+          firstName: u.firstName || u.nombre || prev.firstName || '',
+          lastName: u.lastName || u.apellido || prev.lastName || '',
+          fullName: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim() || prev.fullName || '',
+          phone: u.phone || u.telefono || prev.phone || '',
+          address: u.address || u.direccion || prev.address || '',
+          region: u.region || prev.region || '',
+          city: resolvedCity || prev.city || '',
+          email: u.email || u.mail || prev.email || ''
+        }))
+      } catch (err) {
+          try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
+          setFetchError(err)
+      }
+    })()
+
+    return () => { mounted = false }
   }, [user])
 
   if (!user) return (
@@ -71,6 +113,7 @@ export default function AccountPage() {
 
   return (
     <div className="container">
+      {fetchError && <Unauthorized error={fetchError} />}
       <div className="d-flex justify-content-between align-items-center">
         <h3 className="mb-0">Mi cuenta</h3>
         <div>

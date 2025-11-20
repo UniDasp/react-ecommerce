@@ -1,10 +1,14 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { req, axiosInstance } from '../services/http.js'
+import { useNavigate, useLocation } from 'react-router-dom'
 const STORAGE_USER_KEY = 'levelup-user'
 const STORAGE_TOKEN_KEY = 'levelup-token'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState(() => {
     try {
       const raw = localStorage.getItem(STORAGE_USER_KEY)
@@ -53,11 +57,7 @@ export function AuthProvider({ children }) {
   const fetchProfile = async (t) => {
     if (!t) return { ok: false }
     try {
-      const res = await fetch('http://localhost:8080/autenticacion/yo', {
-        headers: { 'Authorization': `Bearer ${t}` }
-      })
-      if (!res.ok) return { ok: false, status: res.status }
-      const data = await res.json()
+      const data = await req('/autenticacion/yo', t, { method: 'GET' })
       const u = data.user || data.usuario || data || {}
       const rolesRaw = u.roles || u.authorities || u.role || []
       const rolesArr = Array.isArray(rolesRaw) ? rolesRaw : (rolesRaw ? [rolesRaw] : [])
@@ -101,19 +101,37 @@ export function AuthProvider({ children }) {
     return () => { mounted = false }
   }, [token])
 
+  // Centralized interceptor: if backend returns 401 -> logout and go to login
+  // if 403 -> redirect to home. This helps keep UX consistent.
+  useEffect(() => {
+    const id = axiosInstance.interceptors.response.use(
+      (r) => r,
+      (err) => {
+        try {
+          const status = err && err.response && err.response.status
+          if (status === 401) {
+            // invalid / expired token
+            setUser(null)
+            setToken(null)
+            try {
+              const from = location && location.pathname ? location.pathname : '/'
+              navigate('/react-ecommerce/login', { state: { from } })
+            } catch (e) {}
+          } else if (status === 403) {
+            try { navigate('/react-ecommerce/') } catch (e) {}
+          }
+        } catch (e) {}
+        return Promise.reject(err)
+      }
+    )
+    return () => {
+      try { axiosInstance.interceptors.response.eject(id) } catch (e) {}
+    }
+  }, [navigate, location])
+
   const login = async (username, password) => {
     try {
-      const res = await fetch('http://localhost:8080/autenticacion/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      })
-
-      if (!res.ok) {
-        return { ok: false, status: res.status }
-      }
-
-      const data = await res.json()
+      const data = await req('/autenticacion/login', null, { method: 'POST', body: { username, password } })
         const receivedToken = data.token || data.accessToken || data.jwt || null
         const parsed = receivedToken ? parseJwt(receivedToken) : null
 
@@ -177,6 +195,22 @@ export function AuthProvider({ children }) {
     setUser(null)
     setToken(null)
   }
+
+  const handleUnauthorized = (err) => {
+    try {
+      const status = err && (err.status || (err.response && err.response.status))
+      if (status === 401) {
+        logout()
+        try { navigate('/react-ecommerce/login', { state: { from: location && location.pathname } }) } catch (e) {}
+        return true
+      }
+      if (status === 403) {
+        try { navigate('/react-ecommerce/') } catch (e) {}
+        return true
+      }
+    } catch (e) {}
+    return false
+  }
   const updateProfile = async (id, updates) => {
     try {
       let targetId = id
@@ -219,29 +253,8 @@ export function AuthProvider({ children }) {
       if (!isNaN(numericId) && numericId !== null) bodyToSend.id = numericId
       else bodyToSend.id = cleanedId
       try { console.debug('AuthContext.updateProfile -> sending body', bodyToSend) } catch (e) {}
-
-      const res = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(bodyToSend)
-      })
-      const rawText = await res.text().catch(() => null)
-      let parsed = null
-      try {
-        parsed = rawText ? JSON.parse(rawText) : null
-      } catch (e) {
-        parsed = null
-      }
-
-      try { console.debug('AuthContext.updateProfile -> response', { url, status: res.status, ok: res.ok, bodyText: rawText, parsed }) } catch (e) {}
-
-      if (!res.ok) {
-        try { console.error('AuthContext.updateProfile failed', { url, status: res.status, body: rawText }) } catch (e) {}
-        return { ok: false, status: res.status, error: rawText || res.statusText }
-      }
+      const parsed = await req(url, token, { method: 'PUT', body: bodyToSend })
+      try { console.debug('AuthContext.updateProfile -> response', { url, parsed }) } catch (e) {}
       if (parsed) {
         if (token) {
           const refreshed = await fetchProfile(token)
@@ -265,7 +278,7 @@ export function AuthProvider({ children }) {
     }
   }
   const isAuthenticated = Boolean(token)
-  const value = { user, token, isAuthenticated, login, logout, updateProfile }
+  const value = { user, token, isAuthenticated, login, logout, updateProfile, handleUnauthorized }
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

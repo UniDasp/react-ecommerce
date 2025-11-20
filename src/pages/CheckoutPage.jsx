@@ -3,14 +3,17 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import * as paymentsService from '../services/payments.js'
+import { getCurrentUser } from '../services/auth.js'
+import Unauthorized from '../components/Unauthorized.jsx'
 
 export default function CheckoutPage() {
   const navigate = useNavigate()
   const { items, total, clear } = useCart()
-  const { user, token: authToken, isAuthenticated } = useAuth()
+    const { user, token: authToken, isAuthenticated, handleUnauthorized } = useAuth()
   const [step, setStep] = useState(1)
   const [processing, setProcessing] = useState(false)
   const [orderSummary, setOrderSummary] = useState(null)
+  const [fetchError, setFetchError] = useState(null)
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -33,29 +36,40 @@ export default function CheckoutPage() {
       }
     } catch (e) {}
 
-    if (user && user.email) {
-      setFormData(prev => ({ ...prev, email: prev.email || user.email }))
+    if (user && (user.email || user.fullName || user.phone || user.address || user.region || user.city)) {
+      setFormData(prev => ({
+        ...prev,
+        email: prev.email || user.email || '',
+        nombre: prev.nombre || user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        telefono: prev.telefono || user.phone || '',
+        direccion: prev.direccion || user.address || '',
+        region: prev.region || user.region || '',
+        ciudad: prev.ciudad || user.city || ''
+      }))
     }
 
-    if (user && user.fullName) {
-      setFormData(prev => ({ ...prev, nombre: prev.nombre || user.fullName }))
-    }
-
-    if (user && user.phone) {
-      setFormData(prev => ({ ...prev, telefono: prev.telefono || user.phone }))
-    }
-
-    if (user && user.address) {
-      setFormData(prev => ({ ...prev, direccion: prev.direccion || user.address }))
-    }
-
-    if (user && user.region) {
-      setFormData(prev => ({ ...prev, region: prev.region || user.region }))
-    }
-
-    if (user && user.city) {
-      setFormData(prev => ({ ...prev, ciudad: prev.city || user.city }))
-    }
+    ;(async () => {
+      try {
+        const token = (typeof window !== 'undefined' && localStorage) ? localStorage.getItem('levelup-token') : null
+        if (!token) return
+        const res = await getCurrentUser(token)
+        if (!res) return
+        const u = res.user || res.usuario || res || {}
+        const resolvedCity = u.city || u.ciudad || u.locality || u.localidad || u.town || (u.address && (u.address.city || u.address.ciudad)) || ''
+        setFormData(prev => ({
+          ...prev,
+          email: prev.email || u.email || u.mail || '',
+          nombre: prev.nombre || u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim() || '',
+          telefono: prev.telefono || u.phone || u.telefono || '',
+          direccion: prev.direccion || u.address || u.direccion || '',
+          region: prev.region || u.region || '',
+          ciudad: prev.ciudad || resolvedCity || ''
+        }))
+      } catch (err) {
+        try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
+        setFetchError(err)
+      }
+    })()
 
   }, [user])
 
@@ -240,6 +254,7 @@ export default function CheckoutPage() {
   return (
     <div className="checkout-page">
       <h2 className="section-title mb-4">💳 Finalizar Compra</h2>
+      {fetchError && <Unauthorized error={fetchError} />}
       
       <div className="mb-4">
         <div className="d-flex align-items-center justify-content-center gap-3">

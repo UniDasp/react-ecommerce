@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
+import Unauthorized from '../components/Unauthorized.jsx'
 import { listProducts } from '../services/products.js'
 import { createProduct, updateProduct, deleteProduct } from '../services/adminProducts.js'
 import { listCategories } from '../services/categories.js'
@@ -9,7 +10,8 @@ import { listAudit } from '../services/adminAudit.js'
 import { listAllPayments, adminConfirmPayment } from '../services/adminPayments.js'
 
 export default function AdminPanel() {
-  const { user, token } = useAuth()
+  const { user, token, handleUnauthorized } = useAuth()
+  const [fetchError, setFetchError] = useState(null)
   const [products, setProducts] = useState([])
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -64,6 +66,10 @@ export default function AdminPanel() {
         setNewProduct({ name: '', price: '', categoryId: '', image: '', description: '', stock: 0, featured: false })
       } catch (err) {
         console.error('Crear producto falló', err)
+        try {
+          if (handleUnauthorized && handleUnauthorized(err)) return
+        } catch (e) {}
+        setFetchError(err)
         alert('No se pudo crear el producto')
       } finally {
         setSaving(false)
@@ -81,6 +87,7 @@ export default function AdminPanel() {
         setCategories(cats || [])
       } catch (err) {
         console.error('No se pudieron cargar productos/categorías', err)
+        try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
         if (mounted) {
           setProducts([])
           setCategories([])
@@ -102,6 +109,7 @@ export default function AdminPanel() {
         setUsers(Array.isArray(u) ? u : (u?.users || []))
       } catch (err) {
         console.error('No se pudieron cargar usuarios', err)
+        try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
         if (mounted) setUsers([])
       } finally {
         if (mounted) setUsersLoading(false)
@@ -122,6 +130,8 @@ export default function AdminPanel() {
         setUsers(prev => prev.map(u => u.id === id ? ({ ...u, roles: rolesArr, role: newRole, ...((res && typeof res === 'object') ? res : {}) }) : u))
       } catch (err) {
         console.error('Error updating user role', err)
+        try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
+        setFetchError(err)
         alert('No se pudo cambiar el rol del usuario')
       } finally {
         setUsersSaving(false)
@@ -166,6 +176,8 @@ export default function AdminPanel() {
       setEditDraft(null)
     } catch (err) {
       console.error('Error saving product', err)
+      try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
+      setFetchError(err)
       alert('No se pudo guardar el producto')
     } finally {
       setSaving(false)
@@ -179,7 +191,9 @@ export default function AdminPanel() {
       await deleteProduct(token || null, id)
       setProducts(prev => prev.filter(p => p.id !== id))
     } catch (err) {
-      console.error('Error deleting product', err)
+      console.error('Error deleting producto', err)
+      try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
+      setFetchError(err)
       alert('No se pudo eliminar el producto')
     } finally {
       setSaving(false)
@@ -261,6 +275,7 @@ export default function AdminPanel() {
 
   return (
     <div className="admin-panel">
+      {fetchError && <Unauthorized error={fetchError} />}
       <h2 className="section-title">Panel de Administración</h2>
 
       <div className="row mb-4">
@@ -287,13 +302,15 @@ export default function AdminPanel() {
       <div className="admin-tabs d-flex gap-2 mb-3">
         <button className={`btn ${tab === 'products' ? 'btn-neon' : 'btn-outline-secondary'}`} onClick={() => setTab('products')}>Productos</button>
         <button className={`btn ${tab === 'users' ? 'btn-neon' : 'btn-outline-secondary'}`} onClick={() => setTab('users')}>Usuarios</button>
-        <button className={`btn ${tab === 'orders' ? 'btn-neon' : 'btn-outline-secondary'}`} onClick={async () => { setTab('orders'); if (!paymentsLoading) {
+            <button className={`btn ${tab === 'orders' ? 'btn-neon' : 'btn-outline-secondary'}`} onClick={async () => { setTab('orders'); if (!paymentsLoading) {
             setPaymentsLoading(true)
             try {
               const list = await listAllPayments(token)
               setPayments(Array.isArray(list) ? list : (list || []))
             } catch (err) {
               console.error('Error loading payments', err)
+              try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
+              setFetchError(err)
               setPayments([])
             } finally {
               setPaymentsLoading(false)
@@ -636,6 +653,8 @@ export default function AdminPanel() {
                                   setPayments(Array.isArray(list) ? list : (list || []))
                                 } catch (err) {
                                   console.error('Error confirming payment', err)
+                                  try { if (handleUnauthorized && handleUnauthorized(err)) return } catch (e) {}
+                                  setFetchError(err)
                                   alert(err?.body?.error || err?.message || 'No se pudo confirmar')
                                 }
                               }}>Confirmar</button>
